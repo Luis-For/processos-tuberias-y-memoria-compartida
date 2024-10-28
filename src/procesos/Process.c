@@ -27,7 +27,15 @@ int main(int argc, char const *argv[])
     for(i=0; i<numeroDeHijos; i++){
         if((childrens[i]=fork())==0){
             //hijo
-            printf("Hijo %d creado, PID: %d, PID del padre: %d\n", i+1, getpid(), getppid());
+            /*
+            if(i==1){
+                if(fork()==0){
+                    exit(0);
+                }
+            }
+
+            */
+            printf("\nHijo %d creado, PID: %d, PID del padre: %d\n", i+1, getpid(), getppid());
             signal(SIGUSR1, manejador_senal);
 
             // Pausamos el proceso hijo hasta recibir la señal para continuar
