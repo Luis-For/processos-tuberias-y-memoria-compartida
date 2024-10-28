@@ -40,6 +40,7 @@ int main(int argc, char const *argv[])
             sleep(1);   //para visualizar la jeradquia de procesos
         }
     }
+    tree(root);
 
     return 0;
 }
