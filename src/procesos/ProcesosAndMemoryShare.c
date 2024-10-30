@@ -64,6 +64,11 @@ void procesarPalabra(char (*vector)[WORD_MAX_LEN], int *resultado, int id) {
 }
 
 int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Uso: %s <número de hijos>\n", argv[0]);
+        exit(1);
+    }
+
     int numHijos = atoi(argv[1]);
     if (numHijos < 1) {
         fprintf(stderr, "Número de hijos debe ser mayor que 0\n");
@@ -76,10 +81,23 @@ int main(int argc, char *argv[]) {
     int shmidResultadoMatriz = shmget(IPC_PRIVATE, numHijos * sizeof(int), IPC_CREAT | 0666);
     int shmidResultadoPalabras = shmget(IPC_PRIVATE, WORDS_COUNT * sizeof(int), IPC_CREAT | 0666);
 
+    // Verificar si la memoria compartida se creó correctamente
+    if (shmidMatriz == -1 || shmidPalabras == -1 || shmidResultadoMatriz == -1 || shmidResultadoPalabras == -1) {
+        perror("Error al crear memoria compartida");
+        exit(1);
+    }
+
+    // Conectar a la memoria compartida
     int *matriz = (int *)shmat(shmidMatriz, NULL, 0);
     char (*vectorPalabras)[WORD_MAX_LEN] = (char (*)[WORD_MAX_LEN])shmat(shmidPalabras, NULL, 0);
     int *resultadoMatriz = (int *)shmat(shmidResultadoMatriz, NULL, 0);
     int *resultadoPalabras = (int *)shmat(shmidResultadoPalabras, NULL, 0);
+
+    // Verificar conexiones de la memoria compartida
+    if (matriz == (void *) -1 || vectorPalabras == (void *) -1 || resultadoMatriz == (void *) -1 || resultadoPalabras == (void *) -1) {
+        perror("Error al conectar a memoria compartida");
+        exit(1);
+    }
 
     // Inicializar datos en la memoria compartida
     inicializarMatriz(matriz, MATRIX_ROWS, MATRIX_COLS);
@@ -94,6 +112,9 @@ int main(int argc, char *argv[]) {
                 procesarPalabra(vectorPalabras, resultadoPalabras, i);
             }
             exit(0); // Finalizar hijo
+        } else if (pid < 0) {
+            perror("Error al crear proceso hijo");
+            exit(1);
         }
     }
 
